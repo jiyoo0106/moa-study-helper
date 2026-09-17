@@ -552,67 +552,56 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ===== 자료 데이터 =====
-  let files = [
-    { title: "산화환원 반응 탐구 보고서", ext: "hwp", subject: "화학", term: "2학년 1학기", date: "2026-05-12",
-      topic: "산화환원 반응에서 전자의 이동과 지시약 색 변화 관찰",
-      activity: "전자의 이동으로 산화와 환원을 설명하는 실험을 직접 설계하고 진행했다. 지시약의 색 변화를 관찰해 반응이 일어나는 순간을 기록했다.",
-      feeling: "지시약 색 변화가 예상과 달라 원인을 다시 찾아본 과정이 기억에 남는다. 실험은 예상대로만 흘러가지 않는다는 걸 배웠고, 변수를 통제하는 게 왜 중요한지 체감했다.",
-      curious: "온도나 농도를 바꾸면 반응 속도가 어떻게 달라지는지 더 실험해보고 싶다." },
-    { title: "정적분의 활용 발표자료", ext: "pptx", subject: "미적분Ⅰ", term: "2학년 1학기", date: "2026-06-03",
-      topic: "정적분을 이용한 넓이 계산의 실생활 적용",
-      activity: "넓이를 구하는 정적분 개념을 실생활 예시로 바꿔 발표자료를 만들었다.",
-      feeling: "추상적인 공식이 실제 넓이 계산에 쓰인다는 걸 알고 나니 개념이 훨씬 잘 와닿았다.",
-      curious: "" },
-    { title: "프롬프트 인젝션 방어 조사", ext: "pdf", subject: "정보", term: "2학년 1학기", date: "2026-06-20",
-      topic: "LLM 프롬프트 인젝션 공격 원리와 다층 방어 기법",
-      activity: "LLM이 공격에 뚫리는 원리를 조사하고, 방어 기법을 여러 층으로 쌓아야 한다는 점을 정리했다.",
-      feeling: "단일 방어로는 쉽게 우회된다는 게 인상 깊었다. 내 진로인 정보보안과 가장 맞닿은 활동이라 특히 몰입했다.",
-      curious: "실제로 간단한 방어 코드를 직접 짜서 우회가 되는지 테스트해보고 싶다." },
-    { title: "동아리 활동 사진", ext: "jpg", subject: "정보", term: "2학년 1학기", date: "2026-07-01",
-      topic: "", activity: "", feeling: "", curious: "" },
-  ];
+  // ===== Supabase 연결 =====
+  const sb = supabase.createClient(
+    "https://krcndbzrwlqbbvngxhxl.supabase.co",
+    "sb_publishable_uphhqUk9JPE4YGDy9aZuIw_mugI7Jly"
+  );
 
-  // ===== 게시판 데이터 =====
-  // joined: 내가 참여한 과목인지
-  let boards = [
-    { id:"chem", name:"화학", joined:true, member:32, posts:[
-        { kind:"수행", cls:"A반", title:"3단원 산화환원 실험 보고서", date:"9/8", author:"20101 홍길동",
-          body:"A반 수행평가입니다. 실험 과정과 결과 분석 포함해서 A4 2장 이내로 작성하세요. 다음 주 금요일 수업 시간에 제출.",
-          comments:[
-            { who:"20115 김철수", txt:"보고서 양식 따로 있나요?", replies:[ {who:"20101 홍길동", txt:"자유 양식이래요. 대신 실험 과정은 꼭 넣으라고 하셨어요."} ] },
-            { who:"20122 이영희", txt:"손글씨로 써도 되는지 물어봐야겠다", replies:[] },
-            { who:"20510 변지유", txt:"실험 결과표도 첨부해야 하나요?", replies:[] }
-          ] },
-        { kind:"수행", cls:"D반", title:"D반 수행평가 일정 정리", date:"9/6", author:"20423 박민준",
-          body:"D반은 다음 주 수요일 실험, 그 주 금요일까지 보고서 제출이에요. A반이랑 날짜 다르니까 헷갈리지 마세요.",
-          comments:[] },
-        { kind:"시험", cls:"", title:"중간고사 시험범위 (공통)", date:"9/4", author:"20101 홍길동",
-          body:"1단원 전체 ~ 3단원 산화환원까지. 교과서 탐구 문제 위주로 나온다고 하셨습니다. 반 상관없이 공통이에요.",
-          comments:[ { who:"20308 최지우", txt:"프린트 내용도 포함인가요", replies:[ {who:"20101 홍길동", txt:"네 나눠주신 프린트도 범위래요"} ] } ] },
-      ] },
-    { id:"calc", name:"미적분Ⅰ", joined:true, member:28, posts:[
-        { kind:"시험", cls:"", title:"중간고사 시험범위", date:"9/5", author:"20217 정수빈",
-          body:"수열의 극한부터 정적분의 활용까지. 교과서 예제·유제 다시 풀어보는 걸 추천해요.",
-          comments:[] },
-        { kind:"안내", cls:"B반", title:"B반 보충 자료 공유", date:"9/1", author:"20217 정수빈",
-          body:"지난 시간에 어려워했던 정적분 넓이 문제 풀이 정리해서 자료실에 올려뒀어요.",
-          comments:[] },
-      ] },
-    { id:"info", name:"정보", joined:true, member:24, posts:[
-        { kind:"안내", cls:"", title:"프로젝트 발표 순서", date:"9/2", author:"20510 강하은",
-          body:"다음 주 수요일부터 조별 발표 시작합니다. 순서는 곧 정해서 공지할게요.",
-          comments:[] },
-      ] },
-    // 아직 참여 안 한 과목들 (둘러보기)
-    { id:"kor", name:"국어", joined:false, member:30, posts:[] },
-    { id:"eng", name:"영어", joined:false, member:31, posts:[] },
-    { id:"bio", name:"생명과학", joined:false, member:19, posts:[] },
-  ];
+  const ME = "20510 변지유";  // 현재 사용자 (내가 쓴 댓글 판별용, 로그인 기능 붙이기 전까지 고정)
 
+  let files = [];
+  let boards = [];
   let currentBoard = null;   // 입장한 게시판 id
-  const ME = "20510 변지유";  // 현재 사용자 (내가 쓴 댓글 판별용)
+  let loading = true;        // 초기 로딩 중 표시용
+
+  async function loadData() {
+    const [filesRes, boardsRes, postsRes, commentsRes] = await Promise.all([
+      sb.from('files').select('*').order('created_at', { ascending: false }),
+      sb.from('boards').select('*').order('name'),
+      sb.from('posts').select('*').order('created_at', { ascending: false }),
+      sb.from('comments').select('*').order('created_at', { ascending: true }),
+    ]);
+    if (filesRes.error || boardsRes.error || postsRes.error || commentsRes.error) {
+      console.error(filesRes.error || boardsRes.error || postsRes.error || commentsRes.error);
+      showToast("데이터를 불러오지 못했어요. 잠시 후 새로고침 해주세요.");
+      loading = false;
+      return;
+    }
+    files = filesRes.data;
+
+    const commentsByPost = {};
+    commentsRes.data.forEach(c => { (commentsByPost[c.post_id] ??= []).push(c); });
+    function buildTree(postId) {
+      const rows = commentsByPost[postId] || [];
+      const byId = {};
+      rows.forEach(r => byId[r.id] = { ...r, replies: [] });
+      const top = [];
+      rows.forEach(r => {
+        if (r.parent_id && byId[r.parent_id]) byId[r.parent_id].replies.push(byId[r.id]);
+        else if (!r.parent_id) top.push(byId[r.id]);
+      });
+      return top;
+    }
+    boards = boardsRes.data.map(b => ({
+      ...b,
+      posts: postsRes.data.filter(p => p.board_id === b.id).map(p => ({ ...p, comments: buildTree(p.id) })),
+    }));
+
+    loading = false;
+  }
 
   // ===== 자료 렌더 =====
   let activeSubject = "전체";
@@ -628,11 +617,12 @@
   function renderFiles() {
     const list = activeSubject==="전체" ? files : files.filter(f => f.subject===activeSubject);
     const grid = document.getElementById("fileGrid");
-    if (list.length === 0) { grid.innerHTML = `<div class="empty">아직 자료가 없어요. 첫 자료를 올려볼까요?</div>`; return; }
-    grid.innerHTML = list.map(f => {
-      const idx = files.indexOf(f);
-      return `
-      <div class="file" onclick="openDetail(${idx})">
+    if (list.length === 0) {
+      grid.innerHTML = `<div class="empty">${loading ? "불러오는 중…" : "아직 자료가 없어요. 첫 자료를 올려볼까요?"}</div>`;
+      return;
+    }
+    grid.innerHTML = list.map(f => `
+      <div class="file" onclick="openDetail(${f.id})">
         <div class="top">
           <div class="ext ${f.ext}">${f.ext.toUpperCase()}</div>
           <div>
@@ -641,8 +631,8 @@
           </div>
         </div>
         <div class="memo-line"><span class="i">✎</span>${f.activity ? f.activity.slice(0,32)+(f.activity.length>32?"…":"") : "기록 없음 — 눌러서 작성"}</div>
-      </div>`;
-    }).join("");
+      </div>`
+    ).join("");
   }
 
   // ===== 게시판 목록 렌더 =====
@@ -661,7 +651,7 @@
         </div>
         <div class="bc-foot">참여 ${b.member}명</div>
       </div>
-    `).join("") : `<div class="empty" style="grid-column:1/-1">참여한 게시판이 없어요. 아래에서 과목을 골라 참여해보세요.</div>`;
+    `).join("") : `<div class="empty" style="grid-column:1/-1">${loading ? "불러오는 중…" : "참여한 게시판이 없어요. 아래에서 과목을 골라 참여해보세요."}</div>`;
 
     document.getElementById("browseBoards").innerHTML = browse.length ? browse.map(b => `
       <div class="browse-row">
@@ -675,18 +665,22 @@
     `).join("") : `<div class="empty">참여할 수 있는 과목을 모두 참여했어요.</div>`;
   }
 
-  function joinBoard(id) {
+  async function joinBoard(id) {
     const b = boards.find(x => x.id===id);
     if (!confirm(`'${b.name} 게시판'에 참여할까요?`)) return;
+    const { error } = await sb.from('boards').update({ joined: true }).eq('id', id);
+    if (error) { alert("참여 실패: " + error.message); return; }
     b.joined = true;
     renderBoardList();
   }
 
   // 게시판 나가기 (입장 화면에서)
-  function leaveBoard() {
+  async function leaveBoard() {
     const b = boards.find(x => x.id===currentBoard);
     if (!b) { exitBoard(); return; }   // 안전장치: 현재 게시판을 못 찾으면 그냥 목록으로
     if (!confirm(`'${b.name} 게시판'에서 나갈까요?\n언제든 '과목 둘러보기'에서 다시 참여할 수 있어요.`)) return;
+    const { error } = await sb.from('boards').update({ joined: false }).eq('id', b.id);
+    if (error) { alert("나가기 실패: " + error.message); return; }
     b.joined = false;
     exitBoard();  // 목록으로 돌아가기
   }
@@ -721,9 +715,7 @@
     const box = document.getElementById("postList");
     if (!list.length) { box.innerHTML = `<div class="empty">아직 글이 없어요.</div>`; return; }
 
-    box.innerHTML = list.map(p => {
-      const pi = b.posts.indexOf(p);
-      return `
+    box.innerHTML = list.map(p => `
       <div class="post">
         <div class="ptop">
           ${p.cls ? `<span class="class-badge">${p.cls}</span>` : `<span class="class-badge">공통</span>`}
@@ -733,72 +725,80 @@
         </div>
         <div class="body">${p.body}</div>
         <div class="comments">
-          ${p.comments.map((c, ci) => `
+          ${p.comments.map(c => `
             <div class="cmt">
               <div class="av">${avatarChar(c.who)}</div>
               <div class="cbody">
                 <div><span class="who2">${c.who}</span> <span class="txt">${c.txt}</span></div>
-                <span class="reply-toggle" onclick="toggleReply(${pi},${ci})">답글</span>
-                ${c.who===ME ? `<span class="cmt-del" onclick="deleteComment(${pi},${ci})">삭제</span>` : ``}
+                <span class="reply-toggle" onclick="toggleReply(${c.id})">답글</span>
+                ${c.who===ME ? `<span class="cmt-del" onclick="deleteComment(${c.id})">삭제</span>` : ``}
                 ${c.replies.length ? `<div class="replies">
-                  ${c.replies.map((r, ri) => `
+                  ${c.replies.map(r => `
                     <div class="reply">
                       <div class="av">${avatarChar(r.who)}</div>
                       <div class="cbody">
                         <div><span class="who2">${r.who}</span> <span class="txt">${r.txt}</span></div>
-                        ${r.who===ME ? `<span class="cmt-del" onclick="deleteReply(${pi},${ci},${ri})">삭제</span>` : ``}
+                        ${r.who===ME ? `<span class="cmt-del" onclick="deleteComment(${r.id})">삭제</span>` : ``}
                       </div>
                     </div>`).join("")}
                 </div>` : ``}
-                <div class="reply-form" id="rf-${pi}-${ci}" style="display:none">
-                  <input placeholder="답글 달기…" onkeydown="if(event.key==='Enter')addReply(${pi},${ci},this)">
-                  <button onclick="addReply(${pi},${ci},this.previousElementSibling)">등록</button>
+                <div class="reply-form" id="rf-${c.id}" style="display:none">
+                  <input placeholder="답글 달기…" onkeydown="if(event.key==='Enter')addReply(${p.id},${c.id},this)">
+                  <button onclick="addReply(${p.id},${c.id},this.previousElementSibling)">등록</button>
                 </div>
               </div>
             </div>
           `).join("") || `<div style="font-size:13px;color:#b89aa5">아직 댓글이 없어요.</div>`}
           <div class="cmt-form">
-            <input placeholder="댓글 달기…" onkeydown="if(event.key==='Enter')addComment(${pi}, this)">
-            <button onclick="addComment(${pi}, this.previousElementSibling)">등록</button>
+            <input placeholder="댓글 달기…" onkeydown="if(event.key==='Enter')addComment(${p.id}, this)">
+            <button onclick="addComment(${p.id}, this.previousElementSibling)">등록</button>
           </div>
         </div>
-      </div>`;
-    }).join("");
+      </div>`
+    ).join("");
   }
 
-  function addComment(pi, input) {
+  async function addComment(postId, input) {
     const v = input.value.trim(); if (!v) return;
-    boards.find(x=>x.id===currentBoard).posts[pi].comments.push({ who:ME, txt:v, replies:[] });
+    const { data, error } = await sb.from('comments').insert({ post_id: postId, parent_id: null, who: ME, txt: v }).select().single();
+    if (error) { alert("등록 실패: " + error.message); return; }
+    const p = boards.find(x=>x.id===currentBoard).posts.find(x=>x.id===postId);
+    p.comments.push({ ...data, replies: [] });
+    input.value = "";
     renderPosts();
   }
-  function toggleReply(pi, ci) {
-    const el = document.getElementById(`rf-${pi}-${ci}`);
+  function toggleReply(commentId) {
+    const el = document.getElementById(`rf-${commentId}`);
     el.style.display = el.style.display==="none" ? "flex" : "none";
     if (el.style.display==="flex") el.querySelector("input").focus();
   }
-  function addReply(pi, ci, input) {
+  async function addReply(postId, commentId, input) {
     const v = input.value.trim(); if (!v) return;
-    boards.find(x=>x.id===currentBoard).posts[pi].comments[ci].replies.push({ who:ME, txt:v });
+    const { data, error } = await sb.from('comments').insert({ post_id: postId, parent_id: commentId, who: ME, txt: v }).select().single();
+    if (error) { alert("등록 실패: " + error.message); return; }
+    const p = boards.find(x=>x.id===currentBoard).posts.find(x=>x.id===postId);
+    p.comments.find(c=>c.id===commentId).replies.push(data);
     renderPosts();
   }
-  function deleteComment(pi, ci) {
-    boards.find(x=>x.id===currentBoard).posts[pi].comments.splice(ci, 1);
+  async function deleteComment(commentId) {
+    const { error } = await sb.from('comments').delete().eq('id', commentId);
+    if (error) { alert("삭제 실패: " + error.message); return; }
+    const b = boards.find(x=>x.id===currentBoard);
+    b.posts.forEach(p => {
+      p.comments = p.comments.filter(c=>c.id!==commentId);
+      p.comments.forEach(c => c.replies = c.replies.filter(r=>r.id!==commentId));
+    });
     renderPosts();
-    showToast("댓글을 삭제했습니다.");
-  }
-  function deleteReply(pi, ci, ri) {
-    boards.find(x=>x.id===currentBoard).posts[pi].comments[ci].replies.splice(ri, 1);
-    renderPosts();
-    showToast("답글을 삭제했습니다.");
+    showToast("삭제했습니다.");
   }
 
   // ===== 업로드 =====
   function openUpload(){ document.getElementById("uploadModal").classList.add("show"); }
   function closeUpload(){ document.getElementById("uploadModal").classList.remove("show"); }
-  function saveFile() {
+  async function saveFile() {
     const title = document.getElementById("fTitle").value.trim();
     if (!title) { alert("주제(제목)를 입력해줘!"); return; }
-    files.unshift({
+    const { data, error } = await sb.from('files').insert({
       title, ext:"hwp",
       subject: document.getElementById("fSubject").value.trim(),
       term: document.getElementById("fGrade").value + " " + document.getElementById("fTerm").value,
@@ -806,16 +806,18 @@
       activity: document.getElementById("fMemo").value.trim(),
       feeling: "",
       curious: ""
-    });
+    }).select().single();
+    if (error) { alert("저장 실패: " + error.message); return; }
+    files.unshift(data);
     document.getElementById("fTitle").value=""; document.getElementById("fSubject").value=""; document.getElementById("fMemo").value="";
-    closeUpload(); activeSubject="전체"; renderFilters(); renderFiles();
+    closeUpload(); activeSubject="전체"; renderFilters(); renderFiles(); renderHome();
   }
 
   // ===== 자료 상세(보고서) =====
-  let openDetailIndex = null;
-  function openDetail(idx) {
-    openDetailIndex = idx;
-    const f = files[idx];
+  let openDetailId = null;
+  function openDetail(id) {
+    openDetailId = id;
+    const f = files.find(x=>x.id===id);
     const dtExt = document.getElementById("dtExt");
     dtExt.className = "ext " + f.ext;
     dtExt.style.width = "52px"; dtExt.style.height = "52px"; dtExt.style.fontSize = "13px";
@@ -834,24 +836,29 @@
     document.getElementById("detail").classList.add("on");
     window.scrollTo(0,0);
   }
-  function saveDetail() {
-    if (openDetailIndex===null) return;
-    files[openDetailIndex].topic    = document.getElementById("dtTopic").value.trim();
-    files[openDetailIndex].activity = document.getElementById("dtActivity").value.trim();
-    files[openDetailIndex].feeling  = document.getElementById("dtFeeling").value.trim();
-    files[openDetailIndex].curious  = document.getElementById("dtCurious").value.trim();
+  async function saveDetail() {
+    if (openDetailId===null) return;
+    const topic    = document.getElementById("dtTopic").value.trim();
+    const activity = document.getElementById("dtActivity").value.trim();
+    const feeling  = document.getElementById("dtFeeling").value.trim();
+    const curious  = document.getElementById("dtCurious").value.trim();
+    const { error } = await sb.from('files').update({ topic, activity, feeling, curious }).eq('id', openDetailId);
+    if (error) { alert("저장 실패: " + error.message); return; }
+    Object.assign(files.find(x=>x.id===openDetailId), { topic, activity, feeling, curious });
     const hint = document.getElementById("dtHint");
     hint.textContent = "저장됐어요 ✓";
     hint.classList.add("show");
     setTimeout(()=>hint.classList.remove("show"), 2000);
     renderFiles();
   }
-  function deleteFile() {
-    if (openDetailIndex===null) return;
-    const f = files[openDetailIndex];
+  async function deleteFile() {
+    if (openDetailId===null) return;
+    const f = files.find(x=>x.id===openDetailId);
     if (!confirm(`'${f.title}' 자료를 삭제할까요?\n작성한 기록도 함께 삭제되며 되돌릴 수 없어요.`)) return;
-    files.splice(openDetailIndex, 1);
-    openDetailIndex = null;
+    const { error } = await sb.from('files').delete().eq('id', openDetailId);
+    if (error) { alert("삭제 실패: " + error.message); return; }
+    files = files.filter(x=>x.id!==openDetailId);
+    openDetailId = null;
     renderFiles();
     goTab('archive');  // 목록으로 돌아가기
   }
@@ -863,18 +870,16 @@
     document.getElementById("stMemo").textContent = files.filter(f=>(f.activity&&f.activity.trim())||(f.feeling&&f.feeling.trim())).length;
 
     const recent = files.slice(0, 3);
-    document.getElementById("recentList").innerHTML = recent.length ? recent.map(f => {
-      const idx = files.indexOf(f);
-      return `
-      <div class="recent-row" onclick="openDetail(${idx})">
+    document.getElementById("recentList").innerHTML = recent.length ? recent.map(f => `
+      <div class="recent-row" onclick="openDetail(${f.id})">
         <div class="ext ${f.ext}" style="width:38px;height:38px">${f.ext.toUpperCase()}</div>
         <div>
           <div class="rname">${f.title}</div>
           <div class="rsub">${f.subject}</div>
         </div>
         <div class="rdate">${f.date}</div>
-      </div>`;
-    }).join("") : `<div class="empty">아직 저장한 자료가 없어요. ‘내 자료’에서 첫 자료를 올려보세요.</div>`;
+      </div>`
+    ).join("") : `<div class="empty">${loading ? "불러오는 중…" : "아직 저장한 자료가 없어요. ‘내 자료’에서 첫 자료를 올려보세요."}</div>`;
   }
 
   // ===== 탭 이동 =====
@@ -898,8 +903,13 @@
     toastTimer = setTimeout(()=>t.classList.remove("show"), 2000);
   }
 
-  // 시작
-  renderFilters(); renderFiles(); renderBoardList(); renderHome();
+  // ===== 시작 =====
+  async function init() {
+    renderFilters(); renderFiles(); renderBoardList(); renderHome();
+    await loadData();
+    renderFilters(); renderFiles(); renderBoardList(); renderHome();
+  }
+  init();
 </script>
 </body>
 </html>
