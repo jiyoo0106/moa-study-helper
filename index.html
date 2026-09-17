@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모아 · 세특 학습 도우미</title>
+<style>
+  :root {
+    --ink: #2b1a20;
+    --ink-soft: #8a6a74;
+    --line: #f3dde4;
+    --bg: #fdf3f6;
+    --card: #ffffff;
+    --blue: #e5799f;
+    --blue-soft: #fce4ec;
+    --blue-deep: #c9557f;
+    --shadow: 0 1px 3px rgba(120,40,70,.06), 0 6px 20px rgba(120,40,70,.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  /* ---- 상단바 ---- */
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .bar {
+    max-width: 880px; margin: 0 auto;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo {
+    font-size: 21px; font-weight: 800; letter-spacing: -.5px;
+    color: var(--blue-deep);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo .mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: var(--blue); color: #fff;
+    display: grid; place-items: center; font-size: 16px;
+  }
+  .logo small { font-weight: 500; font-size: 13px; color: var(--ink-soft); }
+  .who { margin-left: auto; font-size: 14px; color: var(--ink-soft); }
+  .who b { color: var(--ink); font-weight: 600; }
+
+  /* ---- 탭 ---- */
+  nav {
+    max-width: 880px; margin: 0 auto;
+    padding: 0 20px;
+    display: flex; gap: 4px;
+  }
+  .tab {
+    appearance: none; border: none; background: none;
+    font-family: inherit; font-size: 15px; color: var(--ink-soft);
+    padding: 13px 16px; cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    font-weight: 500;
+  }
+  .tab.on { color: var(--blue-deep); border-color: var(--blue); font-weight: 700; }
+  .tab:hover { color: var(--ink); }
+
+  /* ---- 본문 ---- */
+  main { max-width: 880px; margin: 0 auto; padding: 26px 20px 60px; }
+  .head {
+    display: flex; align-items: flex-end; gap: 12px; margin-bottom: 20px;
+  }
+  .head h1 { font-size: 24px; font-weight: 800; letter-spacing: -.6px; }
+  .head p { color: var(--ink-soft); font-size: 14px; margin-bottom: 3px; }
+  .btn {
+    appearance: none; border: none; font-family: inherit; cursor: pointer;
+    background: var(--blue); color: #fff; font-weight: 600; font-size: 14px;
+    padding: 10px 16px; border-radius: 9px; margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--blue-deep); }
+  .btn.ghost { background: var(--blue-soft); color: var(--blue-deep); }
+  .btn.ghost:hover { background: #dde8fa; }
+
+  /* 칩 필터 */
+  .filters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+  .chip {
+    appearance: none; border: 1px solid var(--line); background: var(--card);
+    font-family: inherit; font-size: 13px; color: var(--ink-soft);
+    padding: 6px 13px; border-radius: 20px; cursor: pointer;
+  }
+  .chip.on { background: var(--blue-deep); border-color: var(--blue-deep); color: #fff; font-weight: 600; }
+
+  /* 자료 카드 */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+  .file {
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: 16px; cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .12s, box-shadow .12s;
+    display: flex; flex-direction: column; gap: 11px;
+  }
+  .file:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(28,37,54,.1); }
+  .file .top { display: flex; align-items: center; gap: 10px; }
+  .ext {
+    width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+    display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #fff;
+  }
+  .ext.hwp { background: #e5799f; }
+  .ext.pdf { background: #e0533d; }
+  .ext.ppt, .ext.pptx { background: #e08a2f; }
+  .ext.jpg, .ext.png { background: #34a877; }
+  .file .name { font-weight: 700; font-size: 15px; line-height: 1.35; }
+  .file .sub { font-size: 12.5px; color: var(--ink-soft); }
+  .tag { font-size: 11.5px; color: var(--blue-deep); background: var(--blue-soft); padding: 2px 9px; border-radius: 6px; }
+  .memo-line {
+    font-size: 12.5px; color: var(--ink-soft); border-top: 1px dashed var(--line);
+    padding-top: 9px; display: flex; align-items: center; gap: 6px;
+  }
+  .memo-line .i { color: var(--blue); }
+
+  /* ===== 홈 ===== */
+  .home-hero {
+    display: flex; gap: 24px; align-items: stretch;
+    background: linear-gradient(135deg, #f491b2 0%, #d95f88 100%);
+    border-radius: 18px; padding: 30px 32px; color: #fff; margin-bottom: 22px;
+  }
+  .hero-text { flex: 1; }
+  .hero-text .hello { font-size: 14px; opacity: .9; margin-bottom: 10px; }
+  .hero-text h1 { font-size: 27px; font-weight: 800; letter-spacing: -.7px; line-height: 1.3; margin-bottom: 12px; }
+  .hero-text .hero-sub { font-size: 14px; opacity: .92; line-height: 1.6; max-width: 60ch; font-weight: 400; }
+  .hero-stats { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-left: 24px; border-left: 1px solid rgba(255,255,255,.22); }
+  .stat { display: flex; align-items: baseline; gap: 8px; }
+  .stat .num { font-size: 30px; font-weight: 800; line-height: 1; }
+  .stat .lbl { font-size: 13px; opacity: .9; }
+
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin-bottom: 26px; }
+  .menu-card {
+    display: flex; align-items: center; gap: 15px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .menu-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(28,37,54,.1); }
+  .mc-icon { width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center; font-size: 24px; flex-shrink: 0; }
+  .mc-icon.a { background: #fce4ec; }
+  .mc-icon.b { background: #fbe8f4; }
+  .mc-body { flex: 1; }
+  .mc-body h3 { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+  .mc-body p { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
+  .mc-go { font-size: 20px; color: #e0a9bd; }
+
+  .home-recent { }
+  .recent-head { display: flex; align-items: center; margin-bottom: 13px; }
+  .recent-head h2 { font-size: 17px; font-weight: 700; }
+  .text-link { appearance: none; border: none; background: none; font-family: inherit; cursor: pointer; margin-left: auto; font-size: 13.5px; color: var(--blue); font-weight: 600; }
+  .text-link:hover { color: var(--blue-deep); }
+  .recent-row {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 15px; margin-bottom: 9px; cursor: pointer;
+  }
+  .recent-row:hover { border-color: #f0c2d3; }
+  .recent-row .rname { font-weight: 600; font-size: 14.5px; }
+  .recent-row .rsub { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+  .recent-row .rdate { margin-left: auto; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+
+  /* ===== 자료 상세(보고서) ===== */
+  .report {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 30px 32px; box-shadow: var(--shadow); max-width: 760px;
+  }
+  .report-head { display: flex; align-items: center; gap: 15px; margin-bottom: 22px; }
+  .report-title { flex: 1; }
+  .report-meta { font-size: 13px; color: var(--ink-soft); margin-bottom: 4px; }
+  .report-title h1 { font-size: 25px; font-weight: 800; letter-spacing: -.6px; line-height: 1.3; }
+  .report-file {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--blue-deep);
+    background: var(--blue-soft); padding: 8px 14px; border-radius: 9px; margin-bottom: 26px; cursor: pointer;
+  }
+  .report-file:hover { background: #fbd3e0; }
+  .report-section { margin-bottom: 22px; }
+  .report-label { display: block; font-size: 14.5px; font-weight: 700; margin-bottom: 9px; color: var(--ink); }
+  .report-area {
+    width: 100%; font-family: inherit; font-size: 15px; line-height: 1.7; color: var(--ink);
+    padding: 15px 17px; border: 1px solid var(--line); border-radius: 12px; outline: none;
+    resize: vertical; min-height: 120px; background: #fffdfe;
+  }
+  .report-area:focus { border-color: var(--blue); background: #fff; }
+  .report-input {
+    width: 100%; font-family: inherit; font-size: 15px; line-height: 1.6; color: var(--ink);
+    padding: 13px 17px; border: 1px solid var(--line); border-radius: 12px; outline: none; background: #fffdfe;
+  }
+  .report-input:focus { border-color: var(--blue); background: #fff; }
+  .report-actions { display: flex; align-items: center; gap: 13px; margin-top: 26px; }
+  .report-actions .save { padding: 11px 26px; border-radius: 10px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; background: var(--blue); color: #fff; }
+  .report-actions .save:hover { background: var(--blue-deep); }
+  .delete-btn {
+    margin-left: auto; appearance: none; border: 1px solid #f0cdd7; background: #fff; cursor: pointer;
+    font-family: inherit; font-size: 13.5px; color: #d64d6f; font-weight: 600;
+    padding: 10px 16px; border-radius: 10px;
+  }
+  .delete-btn:hover { background: #fdeef2; border-color: #e79fb2; }
+  .save-hint { font-size: 13px; color: #3fae7a; opacity: 0; transition: opacity .2s; }
+  .save-hint.show { opacity: 1; }
+
+  /* ===== 게시판 ===== */
+  /* 내 과목 게시판 목록(입장 전) */
+  .board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+  .board-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: 18px; box-shadow: var(--shadow); cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .board-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(28,37,54,.1); }
+  .board-card .bc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .board-icon {
+    width: 40px; height: 40px; border-radius: 11px; background: var(--blue-soft);
+    color: var(--blue-deep); display: grid; place-items: center; font-size: 18px; font-weight: 800;
+  }
+  .board-card h3 { font-size: 16px; font-weight: 700; }
+  .board-card .bc-sub { font-size: 12.5px; color: var(--ink-soft); }
+  .board-card .bc-foot { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+
+  .browse-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .browse-row .board-icon { width: 36px; height: 36px; font-size: 16px; }
+  .browse-row .bn { font-weight: 700; font-size: 15px; }
+  .browse-row .bs { font-size: 12.5px; color: var(--ink-soft); }
+  .join-btn {
+    margin-left: auto; appearance: none; border: none; font-family: inherit; cursor: pointer;
+    background: var(--blue); color: #fff; font-weight: 600; font-size: 13.5px;
+    padding: 8px 15px; border-radius: 8px;
+  }
+  .join-btn:hover { background: var(--blue-deep); }
+  .join-btn.joined { background: #eef1f6; color: var(--ink-soft); cursor: default; }
+
+  .section-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin: 22px 0 11px; }
+
+  /* 게시판 입장 후 */
+  .board-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  }
+  .back-btn {
+    appearance: none; border: 1px solid var(--line); background: var(--card); cursor: pointer;
+    font-family: inherit; font-size: 14px; color: var(--ink-soft);
+    padding: 7px 13px; border-radius: 9px;
+  }
+  .back-btn:hover { background: #fbeef2; }
+  .leave-btn {
+    appearance: none; border: 1px solid var(--line); background: var(--card); cursor: pointer;
+    font-family: inherit; font-size: 13.5px; color: var(--ink-soft);
+    padding: 8px 13px; border-radius: 9px;
+  }
+  .leave-btn:hover { background: #fbeef2; color: var(--blue-deep); border-color: #f0c2d3; }
+  .board-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .board-header .cnt { font-size: 13px; color: var(--ink-soft); }
+
+  .post {
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: 17px 18px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .post .ptop { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .class-badge {
+    font-size: 11.5px; font-weight: 700; color: var(--blue-deep); background: var(--blue-soft);
+    padding: 3px 9px; border-radius: 6px;
+  }
+  .kind-badge {
+    font-size: 11.5px; font-weight: 700; color: #fff; padding: 3px 9px; border-radius: 6px;
+  }
+  .kind-badge.수행 { background: #e08a2f; }
+  .kind-badge.시험 { background: #e0533d; }
+  .kind-badge.안내 { background: #a88a95; }
+  .post h3 { font-size: 16px; font-weight: 700; }
+  .post .meta { font-size: 12.5px; color: var(--ink-soft); margin-left: auto; white-space: nowrap; }
+  .post .body { font-size: 14.5px; color: #4a3038; margin: 4px 0 12px; }
+
+  .comments { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 11px; }
+  .cmt { display: flex; gap: 9px; font-size: 13.5px; }
+  .cmt .av { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-soft); color: var(--blue-deep); display: grid; place-items: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .cmt .cbody { flex: 1; }
+  .cmt .who2 { font-weight: 600; }
+  .cmt .txt { color: #4a3038; }
+  .cmt .reply-toggle { font-size: 12px; color: var(--ink-soft); cursor: pointer; margin-top: 2px; display: inline-block; }
+  .cmt .reply-toggle:hover { color: var(--blue); }
+  .cmt-del { font-size: 12px; color: var(--ink-soft); cursor: pointer; margin-top: 2px; margin-left: 10px; display: inline-block; }
+  .cmt-del:hover { color: #d64d6f; }
+  .toast {
+    position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%) translateY(20px);
+    background: #2b1a20; color: #fff; font-size: 14px; font-weight: 500;
+    padding: 12px 22px; border-radius: 30px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .replies { margin-top: 9px; display: flex; flex-direction: column; gap: 9px; padding-left: 6px; border-left: 2px solid var(--line); }
+  .reply { display: flex; gap: 8px; font-size: 13px; }
+  .reply .av { width: 22px; height: 22px; font-size: 11px; }
+  .reply-form { display: flex; gap: 6px; margin-top: 8px; }
+  .reply-form input { flex: 1; font-family: inherit; font-size: 13px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px; outline: none; }
+  .reply-form input:focus { border-color: var(--blue); }
+  .reply-form button { appearance: none; border: none; font-family: inherit; cursor: pointer; background: var(--blue-soft); color: var(--blue-deep); font-weight: 600; padding: 0 13px; border-radius: 8px; font-size: 13px; }
+
+  .cmt-form { display: flex; gap: 8px; margin-top: 13px; }
+  .cmt-form input {
+    flex: 1; font-family: inherit; font-size: 14px; padding: 9px 13px;
+    border: 1px solid var(--line); border-radius: 9px; outline: none;
+  }
+  .cmt-form input:focus { border-color: var(--blue); }
+  .cmt-form button {
+    appearance: none; border: none; font-family: inherit; cursor: pointer;
+    background: var(--blue-soft); color: var(--blue-deep); font-weight: 600;
+    padding: 0 16px; border-radius: 9px; font-size: 14px;
+  }
+  .cmt-form button:hover { background: #dde8fa; }
+
+  /* 모달 */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(20,28,44,.4);
+    display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 440px;
+    padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+  .modal h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+  .modal .desc { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 18px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-family: inherit; font-size: 14px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 9px; outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); }
+  .field textarea { resize: vertical; min-height: 66px; }
+  .drop {
+    border: 1.5px dashed #e8bccb; border-radius: 11px; padding: 22px;
+    text-align: center; color: var(--ink-soft); font-size: 13.5px; background: #fafbfe;
+  }
+  .drop b { color: var(--blue-deep); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: 9px; font-family: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; border: none; }
+  .cancel { background: #eef1f6; color: var(--ink-soft); }
+  .save { background: var(--blue); color: #fff; }
+  .save:hover { background: var(--blue-deep); }
+
+  .empty { text-align: center; color: var(--ink-soft); padding: 50px 0; font-size: 14px; }
+  .view { display: none; }
+  .view.on { display: block; }
+
+  @media (max-width: 620px) {
+    .grid, .board-grid, .menu-grid { grid-template-columns: 1fr; }
+    .head h1 { font-size: 21px; }
+    .home-hero { flex-direction: column; gap: 20px; padding: 24px; }
+    .hero-text h1 { font-size: 23px; }
+    .hero-stats { flex-direction: row; padding-left: 0; padding-top: 18px; border-left: none; border-top: 1px solid rgba(255,255,255,.22); justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="logo" onclick="goTab('home')" style="cursor:pointer">
+      <span class="mark">모</span>
+      모아 <small>세특 학습 도우미</small>
+    </div>
+    <div class="who">혜화여고 · <b>20510 변지유</b></div>
+  </div>
+  <nav>
+    <button class="tab on" data-tab="home">홈</button>
+    <button class="tab" data-tab="archive">내 자료</button>
+    <button class="tab" data-tab="board">과목 게시판</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ===== 홈 ===== -->
+  <section class="view on" id="home">
+    <div class="home-hero">
+      <div class="hero-text">
+        <p class="hello">안녕하세요, 지유님 👋</p>
+        <h1>흩어진 세특 활동을<br>한곳에 모아두세요</h1>
+        <p class="hero-sub">활동 자료를 저장하고, 그때의 생각을 메모로 남기고, 과목 게시판에서 수행평가·시험범위를 함께 관리해요.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="num" id="stApple">0</span><span class="lbl">저장한 자료</span></div>
+        <div class="stat"><span class="num" id="stBoard">0</span><span class="lbl">참여 게시판</span></div>
+        <div class="stat"><span class="num" id="stMemo">0</span><span class="lbl">작성한 메모</span></div>
+      </div>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" onclick="goTab('archive')">
+        <div class="mc-icon a">🗂️</div>
+        <div class="mc-body">
+          <h3>내 자료</h3>
+          <p>한글·PPT·PDF·사진을 과목별로 저장하고 찾아보기</p>
+        </div>
+        <span class="mc-go">→</span>
+      </div>
+      <div class="menu-card" onclick="goTab('board')">
+        <div class="mc-icon b">💬</div>
+        <div class="mc-body">
+          <h3>과목 게시판</h3>
+          <p>내가 듣는 과목의 수행평가·시험범위를 함께 공유</p>
+        </div>
+        <span class="mc-go">→</span>
+      </div>
+    </div>
+
+    <div class="home-recent">
+      <div class="recent-head">
+        <h2>최근 저장한 자료</h2>
+        <button class="text-link" onclick="goTab('archive')">전체 보기</button>
+      </div>
+      <div id="recentList"></div>
+    </div>
+  </section>
+
+  <!-- ===== 자료 아카이빙 ===== -->
+  <section class="view" id="archive">
+    <div class="head">
+      <div>
+        <p>저장한 세특 활동 자료</p>
+        <h1>내 자료</h1>
+      </div>
+      <button class="btn" onclick="openUpload()">＋ 자료 올리기</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="grid" id="fileGrid"></div>
+  </section>
+
+  <!-- ===== 자료 상세(보고서 보기) ===== -->
+  <section class="view" id="detail">
+    <button class="back-btn" onclick="goTab('archive')" style="margin-bottom:18px">← 내 자료</button>
+    <div class="report">
+      <div class="report-head">
+        <div class="ext" id="dtExt" style="width:52px;height:52px;font-size:13px"></div>
+        <div class="report-title">
+          <div class="report-meta" id="dtMeta"></div>
+          <h1 id="dtTitle"></h1>
+        </div>
+      </div>
+
+      <div class="report-file" id="dtFile"></div>
+
+      <div class="report-section">
+        <label class="report-label">📌 탐구 주제</label>
+        <input class="report-input" id="dtTopic" placeholder="이 활동에서 무엇을 탐구했는지 한 줄로. 예: 산화환원 반응에서 전자의 이동 관찰">
+      </div>
+      <div class="report-section">
+        <label class="report-label">📝 활동 내용</label>
+        <textarea class="report-area" id="dtActivity" placeholder="무엇을 조사하고 어떻게 탐구했는지 구체적으로 적어보세요."></textarea>
+      </div>
+      <div class="report-section">
+        <label class="report-label">💡 배우고 느낀 점</label>
+        <textarea class="report-area" id="dtFeeling" placeholder="이 활동에서 무엇을 알게 됐는지, 어떤 점이 인상 깊었는지, 진로와 어떻게 연결되는지."></textarea>
+      </div>
+      <div class="report-section">
+        <label class="report-label">🔎 더 알아보고 싶은 점</label>
+        <textarea class="report-area" id="dtCurious" placeholder="이 활동 이후 더 궁금해진 것, 다음에 해보고 싶은 것. (면접에서 물어보기 좋아요)"></textarea>
+      </div>
+
+      <div class="report-actions">
+        <button class="save" onclick="saveDetail()">저장</button>
+        <span class="save-hint" id="dtHint"></span>
+        <button class="delete-btn" onclick="deleteFile()">자료 삭제</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 게시판 ===== -->
+  <section class="view" id="board">
+    <!-- 게시판 목록 화면 -->
+    <div id="boardList">
+      <div class="head">
+        <div>
+          <p>내가 듣는 과목의 수행평가 · 시험범위를 함께 관리해요</p>
+          <h1>과목 게시판</h1>
+        </div>
+      </div>
+
+      <div class="section-label">내 과목</div>
+      <div class="board-grid" id="myBoards"></div>
+
+      <div class="section-label">과목 둘러보기</div>
+      <div id="browseBoards"></div>
+    </div>
+
+    <!-- 게시판 입장 화면 -->
+    <div id="boardDetail" style="display:none">
+      <div class="board-header">
+        <button class="back-btn" onclick="exitBoard()">← 목록</button>
+        <div>
+          <h1 id="bdTitle"></h1>
+          <span class="cnt" id="bdCnt"></span>
+        </div>
+        <button class="btn" onclick="alert('프로토타입에서는 글쓰기 화면까지만 준비했어요 :)')" style="margin-left:auto">＋ 글쓰기</button>
+        <button class="leave-btn" onclick="leaveBoard()">나가기</button>
+      </div>
+      <div id="postList"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 업로드 모달 -->
+<div class="overlay" id="uploadModal">
+  <div class="modal">
+    <h2>자료 올리기</h2>
+    <p class="desc">활동 자료를 저장하고 메모로 정리해요.</p>
+    <div class="drop">📎 파일을 여기로 끌어오거나 <b>클릭해서 선택</b><br><span style="font-size:12px">hwp · pptx · pdf · jpg · png</span></div>
+    <div class="field" style="margin-top:14px">
+      <label>학년 · 학기</label>
+      <div style="display:flex; gap:8px">
+        <select id="fGrade">
+          <option>1학년</option><option>2학년</option><option>3학년</option>
+        </select>
+        <select id="fTerm">
+          <option>1학기</option><option>2학기</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>과목</label>
+      <input id="fSubject" placeholder="예: 화학, 미적분, 정보…">
+    </div>
+    <div class="field">
+      <label>주제 (제목)</label>
+      <input id="fTitle" placeholder="예: 산화환원 반응 탐구 보고서">
+    </div>
+    <div class="field">
+      <label>활동 내용 (나중에 자세히 정리할 수 있어요)</label>
+      <textarea id="fMemo" maxlength="500" placeholder="이 활동에서 뭘 했는지 간단히 적어두세요. 저장 후 자료를 열면 느낀 점·더 알고 싶은 점까지 보고서처럼 정리할 수 있어요."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeUpload()">취소</button>
+      <button class="save" onclick="saveFile()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // ===== 자료 데이터 =====
+  let files = [
+    { title: "산화환원 반응 탐구 보고서", ext: "hwp", subject: "화학", term: "2학년 1학기", date: "2026-05-12",
+      topic: "산화환원 반응에서 전자의 이동과 지시약 색 변화 관찰",
+      activity: "전자의 이동으로 산화와 환원을 설명하는 실험을 직접 설계하고 진행했다. 지시약의 색 변화를 관찰해 반응이 일어나는 순간을 기록했다.",
+      feeling: "지시약 색 변화가 예상과 달라 원인을 다시 찾아본 과정이 기억에 남는다. 실험은 예상대로만 흘러가지 않는다는 걸 배웠고, 변수를 통제하는 게 왜 중요한지 체감했다.",
+      curious: "온도나 농도를 바꾸면 반응 속도가 어떻게 달라지는지 더 실험해보고 싶다." },
+    { title: "정적분의 활용 발표자료", ext: "pptx", subject: "미적분Ⅰ", term: "2학년 1학기", date: "2026-06-03",
+      topic: "정적분을 이용한 넓이 계산의 실생활 적용",
+      activity: "넓이를 구하는 정적분 개념을 실생활 예시로 바꿔 발표자료를 만들었다.",
+      feeling: "추상적인 공식이 실제 넓이 계산에 쓰인다는 걸 알고 나니 개념이 훨씬 잘 와닿았다.",
+      curious: "" },
+    { title: "프롬프트 인젝션 방어 조사", ext: "pdf", subject: "정보", term: "2학년 1학기", date: "2026-06-20",
+      topic: "LLM 프롬프트 인젝션 공격 원리와 다층 방어 기법",
+      activity: "LLM이 공격에 뚫리는 원리를 조사하고, 방어 기법을 여러 층으로 쌓아야 한다는 점을 정리했다.",
+      feeling: "단일 방어로는 쉽게 우회된다는 게 인상 깊었다. 내 진로인 정보보안과 가장 맞닿은 활동이라 특히 몰입했다.",
+      curious: "실제로 간단한 방어 코드를 직접 짜서 우회가 되는지 테스트해보고 싶다." },
+    { title: "동아리 활동 사진", ext: "jpg", subject: "정보", term: "2학년 1학기", date: "2026-07-01",
+      topic: "", activity: "", feeling: "", curious: "" },
+  ];
+
+  // ===== 게시판 데이터 =====
+  // joined: 내가 참여한 과목인지
+  let boards = [
+    { id:"chem", name:"화학", joined:true, member:32, posts:[
+        { kind:"수행", cls:"A반", title:"3단원 산화환원 실험 보고서", date:"9/8", author:"20101 홍길동",
+          body:"A반 수행평가입니다. 실험 과정과 결과 분석 포함해서 A4 2장 이내로 작성하세요. 다음 주 금요일 수업 시간에 제출.",
+          comments:[
+            { who:"20115 김철수", txt:"보고서 양식 따로 있나요?", replies:[ {who:"20101 홍길동", txt:"자유 양식이래요. 대신 실험 과정은 꼭 넣으라고 하셨어요."} ] },
+            { who:"20122 이영희", txt:"손글씨로 써도 되는지 물어봐야겠다", replies:[] },
+            { who:"20510 변지유", txt:"실험 결과표도 첨부해야 하나요?", replies:[] }
+          ] },
+        { kind:"수행", cls:"D반", title:"D반 수행평가 일정 정리", date:"9/6", author:"20423 박민준",
+          body:"D반은 다음 주 수요일 실험, 그 주 금요일까지 보고서 제출이에요. A반이랑 날짜 다르니까 헷갈리지 마세요.",
+          comments:[] },
+        { kind:"시험", cls:"", title:"중간고사 시험범위 (공통)", date:"9/4", author:"20101 홍길동",
+          body:"1단원 전체 ~ 3단원 산화환원까지. 교과서 탐구 문제 위주로 나온다고 하셨습니다. 반 상관없이 공통이에요.",
+          comments:[ { who:"20308 최지우", txt:"프린트 내용도 포함인가요", replies:[ {who:"20101 홍길동", txt:"네 나눠주신 프린트도 범위래요"} ] } ] },
+      ] },
+    { id:"calc", name:"미적분Ⅰ", joined:true, member:28, posts:[
+        { kind:"시험", cls:"", title:"중간고사 시험범위", date:"9/5", author:"20217 정수빈",
+          body:"수열의 극한부터 정적분의 활용까지. 교과서 예제·유제 다시 풀어보는 걸 추천해요.",
+          comments:[] },
+        { kind:"안내", cls:"B반", title:"B반 보충 자료 공유", date:"9/1", author:"20217 정수빈",
+          body:"지난 시간에 어려워했던 정적분 넓이 문제 풀이 정리해서 자료실에 올려뒀어요.",
+          comments:[] },
+      ] },
+    { id:"info", name:"정보", joined:true, member:24, posts:[
+        { kind:"안내", cls:"", title:"프로젝트 발표 순서", date:"9/2", author:"20510 강하은",
+          body:"다음 주 수요일부터 조별 발표 시작합니다. 순서는 곧 정해서 공지할게요.",
+          comments:[] },
+      ] },
+    // 아직 참여 안 한 과목들 (둘러보기)
+    { id:"kor", name:"국어", joined:false, member:30, posts:[] },
+    { id:"eng", name:"영어", joined:false, member:31, posts:[] },
+    { id:"bio", name:"생명과학", joined:false, member:19, posts:[] },
+  ];
+
+  let currentBoard = null;   // 입장한 게시판 id
+  const ME = "20510 변지유";  // 현재 사용자 (내가 쓴 댓글 판별용)
+
+  // ===== 자료 렌더 =====
+  let activeSubject = "전체";
+
+  function renderFilters() {
+    const subjects = ["전체", ...new Set(files.map(f => f.subject))];
+    document.getElementById("filters").innerHTML = subjects.map(s =>
+      `<button class="chip ${s===activeSubject?'on':''}" onclick="setSubject('${s}')">${s}</button>`
+    ).join("");
+  }
+  function setSubject(s) { activeSubject = s; renderFilters(); renderFiles(); }
+
+  function renderFiles() {
+    const list = activeSubject==="전체" ? files : files.filter(f => f.subject===activeSubject);
+    const grid = document.getElementById("fileGrid");
+    if (list.length === 0) { grid.innerHTML = `<div class="empty">아직 자료가 없어요. 첫 자료를 올려볼까요?</div>`; return; }
+    grid.innerHTML = list.map(f => {
+      const idx = files.indexOf(f);
+      return `
+      <div class="file" onclick="openDetail(${idx})">
+        <div class="top">
+          <div class="ext ${f.ext}">${f.ext.toUpperCase()}</div>
+          <div>
+            <div class="name">${f.title}</div>
+            <div class="sub">${f.term ? f.term+" · " : ""}${f.subject}</div>
+          </div>
+        </div>
+        <div class="memo-line"><span class="i">✎</span>${f.activity ? f.activity.slice(0,32)+(f.activity.length>32?"…":"") : "기록 없음 — 눌러서 작성"}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // ===== 게시판 목록 렌더 =====
+  function renderBoardList() {
+    const my = boards.filter(b => b.joined);
+    const browse = boards.filter(b => !b.joined);
+
+    document.getElementById("myBoards").innerHTML = my.length ? my.map(b => `
+      <div class="board-card" onclick="enterBoard('${b.id}')">
+        <div class="bc-top">
+          <div class="board-icon">${b.name[0]}</div>
+          <div>
+            <h3>${b.name} 게시판</h3>
+            <div class="bc-sub">새 글 ${b.posts.length}개</div>
+          </div>
+        </div>
+        <div class="bc-foot">참여 ${b.member}명</div>
+      </div>
+    `).join("") : `<div class="empty" style="grid-column:1/-1">참여한 게시판이 없어요. 아래에서 과목을 골라 참여해보세요.</div>`;
+
+    document.getElementById("browseBoards").innerHTML = browse.length ? browse.map(b => `
+      <div class="browse-row">
+        <div class="board-icon">${b.name[0]}</div>
+        <div>
+          <div class="bn">${b.name} 게시판</div>
+          <div class="bs">참여 ${b.member}명</div>
+        </div>
+        <button class="join-btn" onclick="joinBoard('${b.id}')">참여하기</button>
+      </div>
+    `).join("") : `<div class="empty">참여할 수 있는 과목을 모두 참여했어요.</div>`;
+  }
+
+  function joinBoard(id) {
+    const b = boards.find(x => x.id===id);
+    if (!confirm(`'${b.name} 게시판'에 참여할까요?`)) return;
+    b.joined = true;
+    renderBoardList();
+  }
+
+  // 게시판 나가기 (입장 화면에서)
+  function leaveBoard() {
+    const b = boards.find(x => x.id===currentBoard);
+    if (!b) { exitBoard(); return; }   // 안전장치: 현재 게시판을 못 찾으면 그냥 목록으로
+    if (!confirm(`'${b.name} 게시판'에서 나갈까요?\n언제든 '과목 둘러보기'에서 다시 참여할 수 있어요.`)) return;
+    b.joined = false;
+    exitBoard();  // 목록으로 돌아가기
+  }
+
+  function enterBoard(id) {
+    currentBoard = id;
+    document.getElementById("boardList").style.display = "none";
+    document.getElementById("boardDetail").style.display = "block";
+    const b = boards.find(x => x.id===id);
+    document.getElementById("bdTitle").textContent = b.name + " 게시판";
+    document.getElementById("bdCnt").textContent = `참여 ${b.member}명`;
+    renderPosts();
+  }
+  function exitBoard() {
+    currentBoard = null;
+    document.getElementById("boardDetail").style.display = "none";
+    document.getElementById("boardList").style.display = "block";
+    renderBoardList();
+  }
+
+  // "20101 홍길동" → "홍" (이름 첫 글자를 아바타로)
+  function avatarChar(name) {
+    const parts = name.trim().split(" ");
+    const nm = parts.length > 1 ? parts[parts.length-1] : parts[0];
+    return nm[0];
+  }
+
+  // 글 렌더
+  function renderPosts() {
+    const b = boards.find(x => x.id===currentBoard);
+    const list = b.posts;
+    const box = document.getElementById("postList");
+    if (!list.length) { box.innerHTML = `<div class="empty">아직 글이 없어요.</div>`; return; }
+
+    box.innerHTML = list.map(p => {
+      const pi = b.posts.indexOf(p);
+      return `
+      <div class="post">
+        <div class="ptop">
+          ${p.cls ? `<span class="class-badge">${p.cls}</span>` : `<span class="class-badge">공통</span>`}
+          <span class="kind-badge ${p.kind}">${p.kind}</span>
+          <h3>${p.title}</h3>
+          <span class="meta">${p.author||""} · ${p.date}</span>
+        </div>
+        <div class="body">${p.body}</div>
+        <div class="comments">
+          ${p.comments.map((c, ci) => `
+            <div class="cmt">
+              <div class="av">${avatarChar(c.who)}</div>
+              <div class="cbody">
+                <div><span class="who2">${c.who}</span> <span class="txt">${c.txt}</span></div>
+                <span class="reply-toggle" onclick="toggleReply(${pi},${ci})">답글</span>
+                ${c.who===ME ? `<span class="cmt-del" onclick="deleteComment(${pi},${ci})">삭제</span>` : ``}
+                ${c.replies.length ? `<div class="replies">
+                  ${c.replies.map((r, ri) => `
+                    <div class="reply">
+                      <div class="av">${avatarChar(r.who)}</div>
+                      <div class="cbody">
+                        <div><span class="who2">${r.who}</span> <span class="txt">${r.txt}</span></div>
+                        ${r.who===ME ? `<span class="cmt-del" onclick="deleteReply(${pi},${ci},${ri})">삭제</span>` : ``}
+                      </div>
+                    </div>`).join("")}
+                </div>` : ``}
+                <div class="reply-form" id="rf-${pi}-${ci}" style="display:none">
+                  <input placeholder="답글 달기…" onkeydown="if(event.key==='Enter')addReply(${pi},${ci},this)">
+                  <button onclick="addReply(${pi},${ci},this.previousElementSibling)">등록</button>
+                </div>
+              </div>
+            </div>
+          `).join("") || `<div style="font-size:13px;color:#b89aa5">아직 댓글이 없어요.</div>`}
+          <div class="cmt-form">
+            <input placeholder="댓글 달기…" onkeydown="if(event.key==='Enter')addComment(${pi}, this)">
+            <button onclick="addComment(${pi}, this.previousElementSibling)">등록</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function addComment(pi, input) {
+    const v = input.value.trim(); if (!v) return;
+    boards.find(x=>x.id===currentBoard).posts[pi].comments.push({ who:ME, txt:v, replies:[] });
+    renderPosts();
+  }
+  function toggleReply(pi, ci) {
+    const el = document.getElementById(`rf-${pi}-${ci}`);
+    el.style.display = el.style.display==="none" ? "flex" : "none";
+    if (el.style.display==="flex") el.querySelector("input").focus();
+  }
+  function addReply(pi, ci, input) {
+    const v = input.value.trim(); if (!v) return;
+    boards.find(x=>x.id===currentBoard).posts[pi].comments[ci].replies.push({ who:ME, txt:v });
+    renderPosts();
+  }
+  function deleteComment(pi, ci) {
+    boards.find(x=>x.id===currentBoard).posts[pi].comments.splice(ci, 1);
+    renderPosts();
+    showToast("댓글을 삭제했습니다.");
+  }
+  function deleteReply(pi, ci, ri) {
+    boards.find(x=>x.id===currentBoard).posts[pi].comments[ci].replies.splice(ri, 1);
+    renderPosts();
+    showToast("답글을 삭제했습니다.");
+  }
+
+  // ===== 업로드 =====
+  function openUpload(){ document.getElementById("uploadModal").classList.add("show"); }
+  function closeUpload(){ document.getElementById("uploadModal").classList.remove("show"); }
+  function saveFile() {
+    const title = document.getElementById("fTitle").value.trim();
+    if (!title) { alert("주제(제목)를 입력해줘!"); return; }
+    files.unshift({
+      title, ext:"hwp",
+      subject: document.getElementById("fSubject").value.trim(),
+      term: document.getElementById("fGrade").value + " " + document.getElementById("fTerm").value,
+      date: new Date().toISOString().slice(0,10),
+      activity: document.getElementById("fMemo").value.trim(),
+      feeling: "",
+      curious: ""
+    });
+    document.getElementById("fTitle").value=""; document.getElementById("fSubject").value=""; document.getElementById("fMemo").value="";
+    closeUpload(); activeSubject="전체"; renderFilters(); renderFiles();
+  }
+
+  // ===== 자료 상세(보고서) =====
+  let openDetailIndex = null;
+  function openDetail(idx) {
+    openDetailIndex = idx;
+    const f = files[idx];
+    const dtExt = document.getElementById("dtExt");
+    dtExt.className = "ext " + f.ext;
+    dtExt.style.width = "52px"; dtExt.style.height = "52px"; dtExt.style.fontSize = "13px";
+    dtExt.textContent = f.ext.toUpperCase();
+    document.getElementById("dtMeta").textContent = `${f.term ? f.term+" · " : ""}${f.subject}`;
+    document.getElementById("dtTitle").textContent = f.title;
+    document.getElementById("dtFile").innerHTML = `📎 ${f.title}.${f.ext} 열기`;
+    document.getElementById("dtTopic").value = f.topic || "";
+    document.getElementById("dtActivity").value = f.activity || "";
+    document.getElementById("dtFeeling").value = f.feeling || "";
+    document.getElementById("dtCurious").value = f.curious || "";
+    document.getElementById("dtHint").classList.remove("show");
+    // 화면 전환
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    document.getElementById("detail").classList.add("on");
+    window.scrollTo(0,0);
+  }
+  function saveDetail() {
+    if (openDetailIndex===null) return;
+    files[openDetailIndex].topic    = document.getElementById("dtTopic").value.trim();
+    files[openDetailIndex].activity = document.getElementById("dtActivity").value.trim();
+    files[openDetailIndex].feeling  = document.getElementById("dtFeeling").value.trim();
+    files[openDetailIndex].curious  = document.getElementById("dtCurious").value.trim();
+    const hint = document.getElementById("dtHint");
+    hint.textContent = "저장됐어요 ✓";
+    hint.classList.add("show");
+    setTimeout(()=>hint.classList.remove("show"), 2000);
+    renderFiles();
+  }
+  function deleteFile() {
+    if (openDetailIndex===null) return;
+    const f = files[openDetailIndex];
+    if (!confirm(`'${f.title}' 자료를 삭제할까요?\n작성한 기록도 함께 삭제되며 되돌릴 수 없어요.`)) return;
+    files.splice(openDetailIndex, 1);
+    openDetailIndex = null;
+    renderFiles();
+    goTab('archive');  // 목록으로 돌아가기
+  }
+
+  // ===== 홈 렌더 =====
+  function renderHome() {
+    document.getElementById("stApple").textContent = files.length;
+    document.getElementById("stBoard").textContent = boards.filter(b=>b.joined).length;
+    document.getElementById("stMemo").textContent = files.filter(f=>(f.activity&&f.activity.trim())||(f.feeling&&f.feeling.trim())).length;
+
+    const recent = files.slice(0, 3);
+    document.getElementById("recentList").innerHTML = recent.length ? recent.map(f => {
+      const idx = files.indexOf(f);
+      return `
+      <div class="recent-row" onclick="openDetail(${idx})">
+        <div class="ext ${f.ext}" style="width:38px;height:38px">${f.ext.toUpperCase()}</div>
+        <div>
+          <div class="rname">${f.title}</div>
+          <div class="rsub">${f.subject}</div>
+        </div>
+        <div class="rdate">${f.date}</div>
+      </div>`;
+    }).join("") : `<div class="empty">아직 저장한 자료가 없어요. ‘내 자료’에서 첫 자료를 올려보세요.</div>`;
+  }
+
+  // ===== 탭 이동 =====
+  function goTab(name) {
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on", x.dataset.tab===name));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    document.getElementById(name).classList.add("on");
+    if (name==="home") renderHome();
+    if (name==="board") exitBoard();
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => goTab(t.dataset.tab));
+
+  // ===== 토스트 안내 =====
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove("show"), 2000);
+  }
+
+  // 시작
+  renderFilters(); renderFiles(); renderBoardList(); renderHome();
+</script>
+</body>
+</html>
